@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Оценка обслуживания</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background: #f9f9f9; }
+    h2 { margin-bottom: 20px; }
+    .stars span { font-size: 40px; cursor: pointer; color: gray; transition: 0.2s; }
+    .stars span.active { color: gold; }
+    .employees img { width: 120px; margin: 10px; cursor: pointer; border-radius: 10px; box-shadow: 0 0 5px #aaa; }
+    .hidden { display: none; }
+    #thanks { color: green; font-size: 22px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+
+  <div id="step1">
+    <h2>Оцените качество обслуживания</h2>
+    <div class="stars">
+      <span data-val="1">★</span>
+      <span data-val="2">★</span>
+      <span data-val="3">★</span>
+      <span data-val="4">★</span>
+      <span data-val="5">★</span>
+    </div>
+  </div>
+
+  <div id="step2" class="hidden">
+    <h2>Выберите сотрудника</h2>
+    <div class="employees">
+      <!-- Замени пути к фоткам на свои -->
+      <img src="images/employee1.jpg" alt="Сотрудник 1" data-name="Сотрудник 1">
+      <img src="images/employee2.jpg" alt="Сотрудник 2" data-name="Сотрудник 2">
+      <img src="images/employee3.jpg" alt="Сотрудник 3" data-name="Сотрудник 3">
+    </div>
+  </div>
+
+  <h3 id="thanks" class="hidden">Спасибо за вашу оценку!</h3>
+
+<script>
+  // Вставь сюда URL из Google Apps Script (который заканчивается на /exec)
+  const scriptURL = "ВСТАВЬ_ТУТ_URL_ОТ_APPS_SCRIPT";
+  let rating = 0;
+
+  // Выбор звезды
+  document.querySelectorAll('.stars span').forEach(star => {
+    star.addEventListener('click', function() {
+      rating = this.getAttribute("data-val");
+      document.querySelectorAll('.stars span').forEach(s => s.classList.remove("active"));
+      for (let i = 0; i < rating; i++) {
+        document.querySelectorAll('.stars span')[i].classList.add("active");
+      }
+      document.getElementById("step1").classList.add("hidden");
+      document.getElementById("step2").classList.remove("hidden");
+    });
+  });
+
+  // Выбор сотрудника и отправка данных
+  document.querySelectorAll('.employees img').forEach(img => {
+    img.addEventListener('click', function() {
+      const employee = this.getAttribute("data-name");
+      fetch(scriptURL, {
+        method: 'POST',
+        body: JSON.stringify({rating: rating, employee: employee})
+      }).then(() => {
+        document.getElementById("step2").classList.add("hidden");
+        document.getElementById("thanks").classList.remove("hidden");
+      }).catch(err => alert("Ошибка отправки: " + err));
+    });
+  });
+</script>
+
+</body>
+</html>
