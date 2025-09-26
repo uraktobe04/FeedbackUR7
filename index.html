@@ -1,75 +1,118 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Оценка обслуживания</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background: #f9f9f9; }
-    h2 { margin-bottom: 20px; }
-    .stars span { font-size: 40px; cursor: pointer; color: gray; transition: 0.2s; }
-    .stars span.active { color: gold; }
-    .employees img { width: 120px; margin: 10px; cursor: pointer; border-radius: 10px; box-shadow: 0 0 5px #aaa; }
-    .hidden { display: none; }
-    #thanks { color: green; font-size: 22px; margin-top: 30px; }
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    .stars {
+      font-size: 40px;
+      cursor: pointer;
+      color: gray;
+    }
+    .stars .selected {
+      color: gold;
+    }
+    .sellers {
+      margin-top: 20px;
+    }
+    .seller {
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+    }
+    .seller img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+    }
+    .seller.selected img {
+      border-color: #00aaff;
+    }
+    button {
+      margin-top: 30px;
+      padding: 10px 30px;
+      font-size: 18px;
+    }
   </style>
 </head>
 <body>
-
-  <div id="step1">
-    <h2>Оцените качество обслуживания</h2>
-    <div class="stars">
-      <span data-val="1">★</span>
-      <span data-val="2">★</span>
-      <span data-val="3">★</span>
-      <span data-val="4">★</span>
-      <span data-val="5">★</span>
-    </div>
+  <h2>Оцените обслуживание</h2>
+  <div id="stars" class="stars">
+    <span data-value="1">&#9733;</span>
+    <span data-value="2">&#9733;</span>
+    <span data-value="3">&#9733;</span>
+    <span data-value="4">&#9733;</span>
+    <span data-value="5">&#9733;</span>
   </div>
 
-  <div id="step2" class="hidden">
-    <h2>Выберите сотрудника</h2>
-    <div class="employees">
-      <!-- Замени пути к фоткам на свои -->
-      <img src="images/employee1.jpg" alt="Сотрудник 1" data-name="Сотрудник 1">
-      <img src="images/employee2.jpg" alt="Сотрудник 2" data-name="Сотрудник 2">
-      <img src="images/employee3.jpg" alt="Сотрудник 3" data-name="Сотрудник 3">
-    </div>
+  <h3 style="margin-top: 30px;">Кто вас обслуживал?</h3>
+  <div class="sellers" id="sellers">
+    <div class="seller" data-name="Диана"><img src="face1.png"><br>Диана</div>
+    <div class="seller" data-name="Лиана"><img src="face2.png"><br>Лиана</div>
+    <div class="seller" data-name="Мадина"><img src="face3.png"><br>Мадина</div>
+    <div class="seller" data-name="Малика"><img src="face4.png"><br>Малика</div>
   </div>
 
-  <h3 id="thanks" class="hidden">Спасибо за вашу оценку!</h3>
+  <button onclick="submitForm()">Оставить отзыв</button>
+  <p id="status" style="margin-top: 20px;"></p>
 
-<script>
-  // Вставь сюда URL из Google Apps Script (который заканчивается на /exec)
-  const scriptURL = "https://script.google.com/macros/s/AKfycbxiYE8rfU3MfVIecse0q4PGjiqhQdVDFrZuL9CNaK7wNsMXR3UdtwTIcb_QISQQC7w7/exec";
-  let rating = 0;
+  <script>
+    let selectedStars = 0;
+    let selectedSeller = "";
 
-  // Выбор звезды
-  document.querySelectorAll('.stars span').forEach(star => {
-    star.addEventListener('click', function() {
-      rating = this.getAttribute("data-val");
-      document.querySelectorAll('.stars span').forEach(s => s.classList.remove("active"));
-      for (let i = 0; i < rating; i++) {
-        document.querySelectorAll('.stars span')[i].classList.add("active");
+    document.querySelectorAll("#stars span").forEach(star => {
+      star.addEventListener("click", () => {
+        selectedStars = parseInt(star.getAttribute("data-value"));
+        document.querySelectorAll("#stars span").forEach(s => {
+          s.classList.toggle("selected", parseInt(s.getAttribute("data-value")) <= selectedStars);
+        });
+      });
+    });
+
+    document.querySelectorAll(".seller").forEach(div => {
+      div.addEventListener("click", () => {
+        selectedSeller = div.getAttribute("data-name");
+        document.querySelectorAll(".seller").forEach(d => d.classList.remove("selected"));
+        div.classList.add("selected");
+      });
+    });
+
+    function submitForm() {
+      if (!selectedStars || !selectedSeller) {
+        document.getElementById("status").innerText = "❗ Пожалуйста, выберите оценку и продавца.";
+        return;
       }
-      document.getElementById("step1").classList.add("hidden");
-      document.getElementById("step2").classList.remove("hidden");
-    });
-  });
 
-  // Выбор сотрудника и отправка данных
-  document.querySelectorAll('.employees img').forEach(img => {
-    img.addEventListener('click', function() {
-      const employee = this.getAttribute("data-name");
-      fetch(scriptURL, {
-        method: 'POST',
-        body: JSON.stringify({rating: rating, employee: employee})
-      }).then(() => {
-        document.getElementById("step2").classList.add("hidden");
-        document.getElementById("thanks").classList.remove("hidden");
-      }).catch(err => alert("Ошибка отправки: " + err));
-    });
-  });
-</script>
+      document.getElementById("status").innerText = "⏳ Отправка...";
+      const data = {
+        "Дата": new Date().toLocaleString(),
+        "Звезды": selectedStars,
+        "Продавец": selectedSeller
+      };
 
+      fetch("https://api.sheetbest.com/sheets/f493f487-d1a3-493c-8f23-626753c2791c", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      })
+      .then(() => {
+        document.getElementById("status").innerText = "✅ Спасибо за отзыв!";
+        setTimeout(() => location.reload(), 3000);
+      })
+      .catch(() => {
+        document.getElementById("status").innerText = "❌ Ошибка отправки.";
+      });
+    }
+  </script>
 </body>
 </html>
